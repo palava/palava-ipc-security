@@ -55,15 +55,23 @@ class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent 
         SubjectThreadState subjectThreadState = new SubjectThreadState(subject);
         call.set(CALL_KEY, subjectThreadState);
 
-        LOG.debug("switching thread to subject {} with session {}", subject, session);
+        LOG.trace("Switching thread to subject {} with session {}", subject, session);
         subjectThreadState.bind();
+
+        if (LOG.isDebugEnabled()) {
+            if (subject.getPrincipal() == null) {
+                LOG.debug("Calling command anonymously");
+            } else {
+                LOG.debug("Calling command as \"{}\"", subject.getPrincipal());
+            }
+        }
     }
 
     @Override
     public void eventIpcCallDestroy(IpcCall call) {
         SubjectThreadState subjectThreadState = call.get(CALL_KEY);
 
-        LOG.debug("switching thread back to pre-call state");
+        LOG.trace("Switching thread back to pre-call state");
         subjectThreadState.clear();
 
         call.remove(CALL_KEY);
