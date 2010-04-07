@@ -22,6 +22,8 @@ package de.cosmocode.palava.ipc.security;
 
 import com.google.inject.Inject;
 import de.cosmocode.palava.core.Registry;
+import de.cosmocode.palava.core.lifecycle.Disposable;
+import de.cosmocode.palava.core.lifecycle.LifecycleException;
 import de.cosmocode.palava.ipc.IpcCall;
 import de.cosmocode.palava.ipc.IpcCallCreateEvent;
 import de.cosmocode.palava.ipc.IpcCallDestroyEvent;
@@ -36,15 +38,22 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Tobias Sarnowski
  */
-class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent {
+class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent, Disposable {
     private static final Logger LOG = LoggerFactory.getLogger(IpcCallSecurityContext.class);
 
     private static final String CALL_KEY = "SECURITY_SUBJECT_THREAD_STATE";
+    private Registry registry;
 
     @Inject
-    IpcCallSecurityContext(Registry registry) {
+    public IpcCallSecurityContext(Registry registry) {
+        this.registry = registry;
         registry.register(IpcCallCreateEvent.class, this);
         registry.register(IpcCallDestroyEvent.class, this);
+    }
+
+    @Override
+    public void dispose() throws LifecycleException {
+        registry.remove(this);
     }
 
     @Override
@@ -72,7 +81,7 @@ class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent 
         SubjectThreadState subjectThreadState = call.get(CALL_KEY);
 
         LOG.trace("Switching thread back to pre-call state");
-        subjectThreadState.clear();
+        subjectThreadState.restore();
 
         call.remove(CALL_KEY);
     }
