@@ -94,8 +94,8 @@ public class IpcSessionAdapter implements Session {
 
     @Override
     public void stop() throws InvalidSessionException {
+        LOG.debug("stopping/clearing session");
         session.clear();
-        session.setTimeout(1, TimeUnit.NANOSECONDS);
     }
 
     @Override
