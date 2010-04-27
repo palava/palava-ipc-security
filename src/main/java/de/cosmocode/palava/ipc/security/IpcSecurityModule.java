@@ -22,17 +22,15 @@ package de.cosmocode.palava.ipc.security;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Tobias Sarnowski
  */
 public class IpcSecurityModule implements Module {
-    private static final Logger LOG = LoggerFactory.getLogger(IpcSecurityModule.class);
 
     @Override
     public void configure(Binder binder) {
         binder.bind(IpcCallSecurityContext.class).asEagerSingleton();
     }
+    
 }

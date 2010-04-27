@@ -20,25 +20,26 @@
 
 package de.cosmocode.palava.ipc.security;
 
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.subject.support.SubjectThreadState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Inject;
+
 import de.cosmocode.palava.core.Registry;
 import de.cosmocode.palava.core.lifecycle.Disposable;
 import de.cosmocode.palava.core.lifecycle.LifecycleException;
 import de.cosmocode.palava.ipc.IpcCall;
 import de.cosmocode.palava.ipc.IpcCallCreateEvent;
 import de.cosmocode.palava.ipc.IpcCallDestroyEvent;
-import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.subject.support.SubjectThreadState;
-import org.apache.shiro.util.ThreadContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Tobias Sarnowski
  */
 class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent, Disposable {
+    
     private static final Logger LOG = LoggerFactory.getLogger(IpcCallSecurityContext.class);
 
     private static final String CALL_KEY = "SECURITY_SUBJECT_THREAD_STATE";
@@ -78,11 +79,10 @@ class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent,
 
     @Override
     public void eventIpcCallDestroy(IpcCall call) {
-        SubjectThreadState subjectThreadState = call.get(CALL_KEY);
+        SubjectThreadState subjectThreadState = call.remove(CALL_KEY);
 
         LOG.trace("Switching thread back to pre-call state");
         subjectThreadState.restore();
-
-        call.remove(CALL_KEY);
     }
+    
 }
