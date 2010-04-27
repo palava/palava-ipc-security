@@ -26,6 +26,7 @@ import org.apache.shiro.subject.support.SubjectThreadState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import de.cosmocode.palava.core.Registry;
@@ -36,18 +37,22 @@ import de.cosmocode.palava.ipc.IpcCallCreateEvent;
 import de.cosmocode.palava.ipc.IpcCallDestroyEvent;
 
 /**
+ * A listener for the {@link IpcCallCreateEvent} and {@link IpcCallDestroyEvent}
+ * which keeps track of the correct security context.
+ * 
  * @author Tobias Sarnowski
+ * @author Willi Schoenborn
  */
-class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent, Disposable {
+final class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent, Disposable {
     
     private static final Logger LOG = LoggerFactory.getLogger(IpcCallSecurityContext.class);
 
     private static final String CALL_KEY = "SECURITY_SUBJECT_THREAD_STATE";
-    private Registry registry;
+    private final Registry registry;
 
     @Inject
     public IpcCallSecurityContext(Registry registry) {
-        this.registry = registry;
+        this.registry = Preconditions.checkNotNull(registry, "Registry");
         registry.register(IpcCallCreateEvent.class, this);
         registry.register(IpcCallDestroyEvent.class, this);
     }
@@ -59,14 +64,14 @@ class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent,
 
     @Override
     public void eventIpcCallCreate(IpcCall call) {
-        Session session = new IpcSessionAdapter(call.getConnection().getSession());
-        Subject subject = (new Subject.Builder()).session(session).buildSubject();
+        final Session session = new IpcSessionAdapter(call.getConnection().getSession());
+        final Subject subject = (new Subject.Builder()).session(session).buildSubject();
 
-        SubjectThreadState subjectThreadState = new SubjectThreadState(subject);
-        call.set(CALL_KEY, subjectThreadState);
+        final SubjectThreadState state = new SubjectThreadState(subject);
+        call.set(CALL_KEY, state);
 
         LOG.trace("Switching thread to subject {} with session {}", subject, session);
-        subjectThreadState.bind();
+        state.bind();
 
         if (LOG.isDebugEnabled()) {
             if (subject.getPrincipal() == null) {
@@ -79,10 +84,10 @@ class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroyEvent,
 
     @Override
     public void eventIpcCallDestroy(IpcCall call) {
-        SubjectThreadState subjectThreadState = call.remove(CALL_KEY);
+        final SubjectThreadState state = call.remove(CALL_KEY);
 
         LOG.trace("Switching thread back to pre-call state");
-        subjectThreadState.restore();
+        state.restore();
     }
     
 }

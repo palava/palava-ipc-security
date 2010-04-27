@@ -24,6 +24,8 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 
 /**
+ * Binds the {@link IpcCallSecurityContext} as eager singleton.
+ * 
  * @author Tobias Sarnowski
  */
 public class IpcSecurityModule implements Module {

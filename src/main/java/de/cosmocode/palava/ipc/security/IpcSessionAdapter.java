@@ -20,36 +20,45 @@
 
 package de.cosmocode.palava.ipc.security;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import de.cosmocode.palava.ipc.IpcSession;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.shiro.session.InvalidSessionException;
 import org.apache.shiro.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.lang.Object;import java.lang.Override;import java.lang.String;import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+
+import de.cosmocode.palava.ipc.IpcSession;
+import de.cosmocode.patterns.Adapter;
 
 /**
+ * An adapter from {@link IpcSession} to {@link Session}.
+ * 
  * @author Tobias Sarnowski
+ * @author Willi Schoenborn
  */
+@Adapter(Session.class)
 public class IpcSessionAdapter implements Session {
 
     private static final Logger LOG = LoggerFactory.getLogger(IpcSessionAdapter.class);
 
-    private static final Function<Map.Entry<Object, Object>, Object> GET_KEY = new Function<Map.Entry<Object, Object>, Object>() {
-
-        @Override
-        public Object apply(Map.Entry<Object, Object> from) {
-            return from.getKey();
-        }
-
-    };
+    private static final Function<Entry<Object, Object>, Object> GET_KEY = 
+        new Function<Entry<Object, Object>, Object>() {
+    
+            @Override
+            public Object apply(Map.Entry<Object, Object> from) {
+                return from.getKey();
+            }
+    
+        };
 
     private IpcSession session;
 
@@ -120,6 +129,7 @@ public class IpcSessionAdapter implements Session {
 
     @Override
     public String toString() {
-        return "{IpcSessionAdapter->" + session.toString() + "}";
+        return String.format("IpcSessionAdapter [session=%s]", session);
     }
+    
 }
