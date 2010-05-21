@@ -65,7 +65,7 @@ final class IpcCallSecurityContext implements IpcCallCreateEvent, IpcCallDestroy
     @Override
     public void eventIpcCallCreate(IpcCall call) {
         final Session session = new IpcSessionAdapter(call.getConnection().getSession());
-        final Subject subject = (new Subject.Builder()).session(session).buildSubject();
+        final Subject subject = new Subject.Builder().session(session).buildSubject();
 
         final SubjectThreadState state = new SubjectThreadState(subject);
         call.set(CALL_KEY, state);
